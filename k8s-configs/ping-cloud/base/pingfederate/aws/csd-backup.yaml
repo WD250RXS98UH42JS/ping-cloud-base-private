@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pingfederate-csd-backup
+data:
+  backup-csd-data.sh: |-
+    #!/bin/sh
+
+    # Install kubectl
+    echo "Installing kubectl"
+    curl https://storage.googleapis.com/kubernetes-release/release/v1.15.0/bin/linux/amd64/kubectl \
+    -o /usr/local/bin/kubectl
+    
+    chmod +x /usr/local/bin/kubectl
+
+    CSD_FILES=
+    SERVER=$(kubectl get pod -l role=${K8S_DEPLOYMENT_NAME_PINGFEDERATE_ADMIN} | sed -n "/${K8S_DEPLOYMENT_NAME_PINGFEDERATE_ADMIN}/p" | awk '{print $1}')
+    SCRIPT="${HOOKS_DIR}"/82-upload-csd-s3.sh
+    LOG_FILE=/tmp/upload.log
+
+    echo "Uploading CSD on server ${SERVER}"
+    kubectl exec "${SERVER}" -c pingfederate-admin -- sh -c "test -x ${SCRIPT} && ${SCRIPT}" | tee "${LOG_FILE}"
+
+    if test ${?} -eq 0; then
+      CSD_FILE=$(tail -1 "${LOG_FILE}")
+      test -z "${CSD_FILES}" && CSD_FILES="${CSD_FILE}" || CSD_FILES="${CSD_FILES} ${CSD_FILE}"
+    else
+      echo "Upload script not found on server ${SERVER}"
+    fi
+
+    # Print the names of the uploaded files so callers know exactly what was uploaded
+    echo "The following files were uploaded:"
+    echo "${CSD_FILES}"
+
+---
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: pingfederate-csd-periodic-backup
+spec:
+  schedule: "* */1 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccount: ping-serviceaccount
+          restartPolicy: OnFailure
+          containers:
+          - name: pingfederate-csd-backup
+            image: pingidentity/pingfederate:200109-10.0.0
+            command:
+            - /opt/in/backup-csd-data.sh
+            envFrom:
+            - configMapRef:
+                name: pingfederate-environment-variables
+            - secretRef:
+                name: devops-secret
+                optional: true
+            volumeMounts:
+            - name: pingfederate-csd-backup
+              mountPath: /opt/in/backup-csd-data.sh
+              subPath: backup-csd-data.sh
+          volumes:
+          - name: pingfederate-csd-backup
+            configMap:
+              name: pingfederate-csd-backup
+              defaultMode: 0555
