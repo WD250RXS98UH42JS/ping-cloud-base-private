@@ -43,7 +43,7 @@ kind: CronJob
 metadata:
   name: pingfederate-csd-periodic-backup
 spec:
-  schedule: "* */1 * * *"
+  schedule: "0 * * * *"
   jobTemplate:
     spec:
       template:

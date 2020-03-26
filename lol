@@ -1,95 +1,177 @@
-Name:           pingfederate-9f558b4b
-Namespace:      ping-cloud-kyryloyermak
-Selector:       app=ping-cloud,pod-template-hash=9f558b4b,role=pingfederate-engine
-Labels:         app=ping-cloud
-                cluster=pingfederate-cluster
-                pod-template-hash=9f558b4b
-                role=pingfederate-engine
-Annotations:    deployment.kubernetes.io/desired-replicas: 2
-                deployment.kubernetes.io/max-replicas: 3
-                deployment.kubernetes.io/revision: 1
-Controlled By:  Deployment/pingfederate
-Replicas:       2 current / 2 desired
-Pods Status:    2 Running / 0 Waiting / 0 Succeeded / 0 Failed
-Pod Template:
-  Labels:           app=ping-cloud
-                    cluster=pingfederate-cluster
-                    pod-template-hash=9f558b4b
-                    role=pingfederate-engine
-  Annotations:      lastUpdateReason: NA
-  Service Account:  ping-serviceaccount
-  Init Containers:
-   pingfederate-init:
-    Image:      curlimages/curl:7.68.0
-    Port:       <none>
-    Host Port:  <none>
-    Command:
-      /init.sh
-    Environment Variables from:
-      pingfederate-environment-variables  ConfigMap  Optional: false
-    Environment:                          <none>
-    Mounts:
-      /.ssh from ssh-dir (rw)
-      /data from data-dir (rw)
-      /id_rsa from ssh-id-key-secret (rw,path="id_rsa")
-      /init.sh from pingfederate-init (rw,path="init.sh")
-      /known_hosts from known-hosts-config (rw,path="known_hosts")
-  Containers:
-   pingfederate:
-    Image:      pingidentity/pingfederate:10.0.1-edge
-    Port:       9031/TCP
-    Host Port:  0/TCP
-    Limits:
-      cpu:     1
-      memory:  2Gi
-    Requests:
-      cpu:      1
-      memory:   2Gi
-    Liveness:   exec [liveness.sh] delay=0s timeout=1s period=30s #success=1 #failure=10
-    Readiness:  exec [liveness.sh] delay=0s timeout=1s period=30s #success=1 #failure=10
-    Environment Variables from:
-      pingfederate-environment-variables  ConfigMap  Optional: false
-      devops-secret                       Secret     Optional: true
-    Environment:
-      WAIT_FOR_SERVICES:      pingfederate-admin
-      OPERATIONAL_MODE:       CLUSTERED_ENGINE
-      PF_DNS_PING_NAMESPACE:   (v1:metadata.namespace)
-      PF_LDAP_PASSWORD:       <set to the key 'PF_LDAP_PASSWORD' in secret 'pingcommon-passwords'>  Optional: false
-    Mounts:
-      /opt/in/instance/server/default/conf/pingfederate.lic from pingfederate-license (rw,path="pingfederate.lic")
-      /opt/in/instance/server/default/data/pf.jwk from pingfederate-jwk (rw,path="pf.jwk")
-      /root/.ssh from ssh-dir (rw)
-      /usr/local/bin/kubectl from data-dir (rw,path="kubectl")
-  Volumes:
-   ssh-dir:
-    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
-    Medium:     
-    SizeLimit:  <unset>
-   data-dir:
-    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
-    Medium:     
-    SizeLimit:  <unset>
-   pingfederate-init:
-    Type:      ConfigMap (a volume populated by a ConfigMap)
-    Name:      pingfederate-init
-    Optional:  false
-   ssh-id-key-secret:
-    Type:        Secret (a volume populated by a Secret)
-    SecretName:  ssh-id-key-secret
-    Optional:    true
-   known-hosts-config:
-    Type:      ConfigMap (a volume populated by a ConfigMap)
-    Name:      known-hosts-config
-    Optional:  true
-   pingfederate-license:
-    Type:        Secret (a volume populated by a Secret)
-    SecretName:  pingfederate-license
-    Optional:    true
-   pingfederate-jwk:
-    Type:        Secret (a volume populated by a Secret)
-    SecretName:  pingfederate-jwk
-    Optional:    true
-Events:
-  Type    Reason            Age   From                   Message
-  ----    ------            ----  ----                   -------
-  Normal  SuccessfulCreate  50m   replicaset-controller  Created pod: pingfederate-9f558b4b-548nw
+PATH=/opt/java/bin:/opt:/opt/out/instance/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+HOSTNAME=pingfederate-9f558b4b-7nd4k
+OPERATIONAL_MODE=CLUSTERED_ENGINE
+K8S_DEPLOYMENT_NAME_PINGFEDERATE_ADMIN=pingfederate-admin
+LDAPS_PORT=1636
+ARTIFACT_REPO_URL=s3://kyryloyermak-csd-archives-bucket
+PF_DNS_PING_NAMESPACE=ping-cloud-kyryloyermak
+BACKUP_URL=s3://kyryloyermak-csd-archives-bucket/pingfederate
+PF_MAX_HEAP=512m
+SERVER_PROFILE_PATH=profiles/aws/pingfederate
+WAIT_FOR_SERVICES=pingfederate-admin
+PING_IDENTITY_ACCEPT_EULA=YES
+S3_BACKUP_FILTER_DAY_COUNT=3
+PF_MIN_HEAP=256m
+PF_PD_BIND_PROTOCOL=ldap
+PF_MAX_YGEN=256m
+PF_ADMIN_PUBLIC_HOSTNAME=pingfederate-admin-kyryloyermak.kyryloyermak.ping-demo.com
+PF_LDAP_PASSWORD=2FederateM0re
+PD_TLS_TUNNEL_PORT=5678
+SERVER_PROFILE_URL=https://github.com/pingidentity/ping-cloud-base.git
+API_RETRY_LIMIT=10
+PING_IDENTITY_DEVOPS_USER=kyryloyermak@pingidentity.com
+PF_PD_BIND_USESSL=false
+API_TIMEOUT_WAIT=5
+PA_ADMIN_PUBLIC_HOSTNAME=pingaccess-admin-kyryloyermak.kyryloyermak.ping-demo.com
+ORCHESTRATION_TYPE=kubernetes
+LDAP_PORT=1389
+PF_LOG_LEVEL=INFO
+PA_ENGINE_PUBLIC_HOSTNAME=pingaccess-kyryloyermak.kyryloyermak.ping-demo.com
+PF_MIN_YGEN=128m
+PF_PD_BIND_PORT=1389
+SERVER_PROFILE_BRANCH=profile-test-kyryloyermak
+LOG_ARCHIVE_URL=s3://kyryloyermak-csd-archives-bucket/pingdirectory
+PING_IDENTITY_DEVOPS_KEY=28052936-0e8d-4d8e-ab2e-93193b51b0e4
+PF_DNS_PING_CLUSTER=pingfederate-cluster
+PF_ENGINE_PUBLIC_HOSTNAME=pingfederate-kyryloyermak.kyryloyermak.ping-demo.com
+PING_ARTIFACT_REPO_URL=https://ping-artifacts.s3-us-west-2.amazonaws.com
+ACCEPT_EULA=YES
+KUBERNETES_PORT_443_TCP=tcp://10.100.0.1:443
+PINGACCESS_PORT=tcp://10.100.241.150:443
+PINGDATACONSOLE_SERVICE_PORT_8080_TCP_PROTO=tcp
+HTTPBIN_PORT=tcp://10.100.38.180:80
+PINGDIRECTORY_ADMIN_SERVICE_PORT=636
+PINGDIRECTORY_ADMIN_PORT_636_TCP=tcp://10.100.249.243:636
+PINGFEDERATE_PORT_9031_TCP=tcp://10.100.18.22:9031
+KUBERNETES_PORT_443_TCP_ADDR=10.100.0.1
+PINGACCESS_ADMIN_PORT=tcp://10.100.116.132:9000
+PINGACCESS_ADMIN_PORT_9090_TCP=tcp://10.100.116.132:9090
+PINGACCESS_PORT_443_TCP_PORT=443
+PINGACCESS_ADMIN_SERVICE_PORT_PINGACCESS_CLUSTER=9090
+PINGDIRECTORY_ADMIN_PORT=tcp://10.100.249.243:636
+PINGFEDERATE_ADMIN_SERVICE_HOST=10.100.254.161
+PINGDATACONSOLE_SERVICE_PORT=tcp://10.100.237.88:8080
+HTTPBIN_PORT_80_TCP_ADDR=10.100.38.180
+PINGACCESS_SERVICE_PORT_PINGACCESS_ENGINE=443
+PINGACCESS_PORT_443_TCP=tcp://10.100.241.150:443
+PINGACCESS_ADMIN_PORT_9000_TCP_PORT=9000
+PINGDIRECTORY_ADMIN_SERVICE_PORT_LDAPS=636
+PINGFEDERATE_ADMIN_PORT_9999_TCP_PROTO=tcp
+KUBERNETES_SERVICE_HOST=10.100.0.1
+KUBERNETES_SERVICE_PORT=443
+KUBERNETES_PORT=tcp://10.100.0.1:443
+PINGACCESS_ADMIN_PORT_9000_TCP=tcp://10.100.116.132:9000
+PINGFEDERATE_ADMIN_PORT_9999_TCP_ADDR=10.100.254.161
+HTTPBIN_SERVICE_HOST=10.100.38.180
+HTTPBIN_PORT_80_TCP_PROTO=tcp
+PINGACCESS_ADMIN_SERVICE_PORT_PINGACCESS_ADMIN=9000
+PINGFEDERATE_PORT_9031_TCP_PROTO=tcp
+PINGACCESS_SERVICE_PORT=443
+PINGACCESS_ADMIN_PORT_9090_TCP_PROTO=tcp
+PINGDIRECTORY_ADMIN_PORT_636_TCP_PROTO=tcp
+PINGFEDERATE_ADMIN_PORT_9999_TCP_PORT=9999
+PINGACCESS_SERVICE_HOST=10.100.241.150
+PINGACCESS_ADMIN_PORT_9000_TCP_PROTO=tcp
+PINGDIRECTORY_ADMIN_PORT_636_TCP_ADDR=10.100.249.243
+PINGACCESS_ADMIN_PORT_9000_TCP_ADDR=10.100.116.132
+PINGACCESS_ADMIN_PORT_9090_TCP_ADDR=10.100.116.132
+HTTPBIN_SERVICE_PORT=80
+PINGDIRECTORY_ADMIN_SERVICE_HOST=10.100.249.243
+PINGFEDERATE_ADMIN_SERVICE_PORT=9999
+PINGFEDERATE_ADMIN_SERVICE_PORT_PINGFEDERATE_ADMIN=9999
+PINGDATACONSOLE_SERVICE_PORT_8080_TCP_ADDR=10.100.237.88
+PINGFEDERATE_SERVICE_HOST=10.100.18.22
+PINGDATACONSOLE_SERVICE_PORT_8080_TCP_PORT=8080
+KUBERNETES_SERVICE_PORT_HTTPS=443
+PINGACCESS_ADMIN_PORT_9090_TCP_PORT=9090
+PINGFEDERATE_ADMIN_PORT=tcp://10.100.254.161:9999
+PINGDATACONSOLE_SERVICE_SERVICE_HOST=10.100.237.88
+PINGDATACONSOLE_SERVICE_SERVICE_PORT=8080
+PINGDATACONSOLE_SERVICE_SERVICE_PORT_HTTP=8080
+PINGFEDERATE_SERVICE_PORT=9031
+PINGFEDERATE_PORT_9031_TCP_PORT=9031
+PINGFEDERATE_PORT_9031_TCP_ADDR=10.100.18.22
+PINGACCESS_ADMIN_SERVICE_HOST=10.100.116.132
+KUBERNETES_PORT_443_TCP_PROTO=tcp
+PINGACCESS_PORT_443_TCP_ADDR=10.100.241.150
+PINGFEDERATE_ADMIN_PORT_9999_TCP=tcp://10.100.254.161:9999
+PINGFEDERATE_SERVICE_PORT_PINGFEDERATE_RUNTIME=9031
+HTTPBIN_SERVICE_PORT_HTTPBIN=80
+HTTPBIN_PORT_80_TCP_PORT=80
+PINGDATACONSOLE_SERVICE_PORT_8080_TCP=tcp://10.100.237.88:8080
+KUBERNETES_PORT_443_TCP_PORT=443
+PINGFEDERATE_PORT=tcp://10.100.18.22:9031
+PINGACCESS_ADMIN_SERVICE_PORT=9000
+PINGDIRECTORY_ADMIN_PORT_636_TCP_PORT=636
+HTTPBIN_PORT_80_TCP=tcp://10.100.38.180:80
+PINGACCESS_PORT_443_TCP_PROTO=tcp
+IMAGE_VERSION=pingfederate-alpine-az11-10.0.1-200326-1d08
+IMAGE_GIT_REV=1d0847ccbfe41c939b9c4780fe6e875f13e5ff4e
+BASE=/opt
+IN_DIR=/opt/in
+OUT_DIR=/opt/out
+SERVER_BITS_DIR=/opt/server
+BAK_DIR=/opt/backup
+LOGS_DIR=/opt/logs
+SECRETS_DIR=/usr/local/secrets
+PING_IDENTITY_DEVOPS_FILE=devops-secret
+STAGING_DIR=/opt/staging
+TOPOLOGY_FILE=/opt/staging/topology.json
+HOOKS_DIR=/opt/staging/hooks
+SERVER_PROFILE_DIR=/tmp/server-profile
+SERVER_PROFILE_URL_REDACT=true
+SERVER_PROFILE_UPDATE=false
+SERVER_ROOT_DIR=/opt/out/instance
+SECURITY_CHECKS_STRICT=false
+SECURITY_CHECKS_FILENAME=*.jwk *.pin
+LICENSE_DIR=/opt/out/instance/server/default/conf
+STARTUP_COMMAND=/opt/out/instance/bin/run.sh
+STARTUP_FOREGROUND_OPTS=
+STARTUP_BACKGROUND_OPTS=
+PING_IDENTITY_DEVOPS_KEY_REDACT=true
+TAIL_LOG_FILES=/opt/out/instance/log/server.log
+COLORIZE_LOGS=true
+LOCATION=Docker
+LOCATION_VALIDATION=true|Any string denoting a logical/physical location|Must be a string
+MAX_HEAP_SIZE=384m
+JVM_TUNING=AGGRESSIVE
+VERBOSE=false
+PING_DEBUG=false
+PING_PRODUCT=PingFederate
+PING_PRODUCT_VALIDATION=true|i.e. PingFederate,PingDirectory|Must be a valid Ping prouduct type
+HTTPS_PORT=443
+JMX_PORT=689
+USER_BASE_DN=dc=example,dc=com
+DOLLAR=$
+PD_ENGINE_PUBLIC_HOSTNAME=localhost
+PD_ENGINE_PRIVATE_HOSTNAME=pingdirectory
+PDP_ENGINE_PUBLIC_HOSTNAME=localhost
+PDP_ENGINE_PRIVATE_HOSTNAME=pingdirectoryproxy
+PDS_ENGINE_PUBLIC_HOSTNAME=localhost
+PDS_ENGINE_PRIVATE_HOSTNAME=pingdatasync
+PDG_ENGINE_PUBLIC_HOSTNAME=localhost
+PDG_ENGINE_PRIVATE_HOSTNAME=pingdatagovernance
+PF_ENGINE_PRIVATE_HOSTNAME=pingfederate
+PF_ADMIN_PRIVATE_HOSTNAME=pingfederate-admin
+PA_ENGINE_PRIVATE_HOSTNAME=pingaccess
+PA_ADMIN_PRIVATE_HOSTNAME=pingaccess-admin
+ROOT_USER_DN=cn=administrator
+ENV=/opt/.profile
+MOTD_URL=https://raw.githubusercontent.com/pingidentity/pingidentity-devops-getting-started/master/motd/motd.json
+PS1=${PING_PRODUCT}:\h:\w\n> 
+PING_CONTAINER_PRIVILEGED=true
+PING_CONTAINER_UID=9031
+PING_CONTAINER_GID=9999
+PING_CONTAINER_UNAME=ping
+PING_CONTAINER_GNAME=identity
+JAVA_HOME=/opt/java
+LICENSE_FILE_NAME=pingfederate.lic
+LICENSE_SHORT_NAME=PF
+LICENSE_VERSION=10.0
+CLUSTER_BIND_ADDRESS=NON_LOOPBACK
+PF_ENGINE_DEBUG=false
+PF_ADMIN_DEBUG=false
+PF_DEBUG_PORT=9030
+PF_ENGINE_PORT=9031
+PF_ADMIN_PORT=9999
+HOME=/root

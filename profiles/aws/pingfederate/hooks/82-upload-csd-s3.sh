@@ -35,11 +35,7 @@ DIRECTORY_NAME=$(echo ${PING_PRODUCT} | tr '[:upper:]' '[:lower:]')
 echo "Creating directory ${DIRECTORY_NAME} under bucket ${BUCKET_NAME}"
 aws s3api put-object --bucket "${BUCKET_NAME}" --key "${DIRECTORY_NAME}"/
 
-if test "${LOG_ARCHIVE_URL}" == */pingfederate; then
-  TARGET_URL="${LOG_ARCHIVE_URL}"
-else
-  TARGET_URL="${LOG_ARCHIVE_URL}/${DIRECTORY_NAME}"
-fi
+TARGET_URL="${LOG_ARCHIVE_URL%/*}/${DIRECTORY_NAME}"
 
 echo "Uploading "${CSD_OUT}" to ${TARGET_URL} at ${NOW}"
 DST_FILE=$(basename "${CSD_OUT}")
