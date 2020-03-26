@@ -13,20 +13,24 @@ data:
     
     chmod +x /usr/local/bin/kubectl
 
+    REPLICAS=$(kubectl get pods -l=role=pingfederate-engine -o jsonpath={.items..metadata.name})
+
     CSD_FILES=
-    SERVER=$(kubectl get pod -l role=${K8S_DEPLOYMENT_NAME_PINGFEDERATE_ADMIN} | sed -n "/${K8S_DEPLOYMENT_NAME_PINGFEDERATE_ADMIN}/p" | awk '{print $1}')
-    SCRIPT="${HOOKS_DIR}"/82-upload-csd-s3.sh
-    LOG_FILE=/tmp/upload.log
+    for REPLICA in ${REPLICAS}; do
+      SERVER=${REPLICA}
+      SCRIPT="${HOOKS_DIR}"/82-upload-csd-s3.sh
+      LOG_FILE=/tmp/upload.log
 
-    echo "Uploading CSD on server ${SERVER}"
-    kubectl exec "${SERVER}" -c pingfederate-admin -- sh -c "test -x ${SCRIPT} && ${SCRIPT}" | tee "${LOG_FILE}"
+      echo "Uploading CSD on server ${SERVER}"
+      kubectl exec "${SERVER}" -c pingfederate -- sh -c "test -x ${SCRIPT} && ${SCRIPT}" | tee "${LOG_FILE}"
 
-    if test ${?} -eq 0; then
-      CSD_FILE=$(tail -1 "${LOG_FILE}")
-      test -z "${CSD_FILES}" && CSD_FILES="${CSD_FILE}" || CSD_FILES="${CSD_FILES} ${CSD_FILE}"
-    else
-      echo "Upload script not found on server ${SERVER}"
-    fi
+      if test ${?} -eq 0; then
+        CSD_FILE=$(tail -1 "${LOG_FILE}")
+        test -z "${CSD_FILES}" && CSD_FILES="${CSD_FILE}" || CSD_FILES="${CSD_FILES} ${CSD_FILE}"
+      else
+        echo "Upload script not found on server ${SERVER}"
+      fi
+    done
 
     # Print the names of the uploaded files so callers know exactly what was uploaded
     echo "The following files were uploaded:"

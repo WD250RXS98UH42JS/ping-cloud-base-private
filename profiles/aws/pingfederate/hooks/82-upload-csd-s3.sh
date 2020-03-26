@@ -25,7 +25,7 @@ NOW=$(date "${FORMAT}")
 
 cd "${OUT_DIR}"
 
-collect-support-data --duration 1h
+collect-support-data.sh --duration 1h
 CSD_OUT=$(find . -name support\*zip -type f | sort | tail -1)
 
 BUCKET_URL_NO_PROTOCOL=${LOG_ARCHIVE_URL#s3://}
