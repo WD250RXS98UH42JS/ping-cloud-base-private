@@ -18,7 +18,6 @@ elif ! which aws > /dev/null; then
   apk --update add python3
   pip3 install --no-cache-dir --upgrade pip
   pip3 install --no-cache-dir --upgrade awscli
-  pip3 install --no-cache-dir --upgrade bash
 fi
 
 FORMAT="+%d/%b/%Y:%H:%M:%S %z"
@@ -26,7 +25,7 @@ NOW=$(date "${FORMAT}")
 
 cd "${OUT_DIR}"
 
-${SERVER_ROOT_DIR}/collect-support-data.sh
+sh ${SERVER_ROOT_DIR}/collect-support-data.sh
 CSD_OUT=$(find . -name support\*zip -type f | sort | tail -1)
 
 BUCKET_URL_NO_PROTOCOL=${LOG_ARCHIVE_URL#s3://}
