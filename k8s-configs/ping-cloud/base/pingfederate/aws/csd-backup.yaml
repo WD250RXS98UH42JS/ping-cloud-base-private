@@ -52,7 +52,7 @@ spec:
           restartPolicy: OnFailure
           containers:
           - name: pingfederate-csd-backup
-            image: pingidentity/pingfederate:200109-10.0.0
+            image: pingidentity/pingfederate:10.0.1-edge
             command:
             - /opt/in/backup-csd-data.sh
             envFrom:

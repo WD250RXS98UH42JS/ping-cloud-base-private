@@ -13,7 +13,7 @@ spec:
       restartPolicy: Never
       containers:
       - name: pingfederate-backup
-        image: pingidentity/pingfederate:200109-10.0.0
+        image: pingidentity/pingfederate:10.0.1-edge
         command:
         - /opt/in/backup-archive-data.sh
         envFrom:
