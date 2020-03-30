@@ -13,7 +13,7 @@ data:
     
     chmod +x /usr/local/bin/kubectl
 
-    REPLICAS=$(kubectl get pods -l=role=pingfederate-engine -o jsonpath={.items..metadata.name})
+    REPLICAS=$(kubectl get pods -l=role=pingfederate-engine -o name)
 
     CSD_FILES=
     for REPLICA in ${REPLICAS}; do
@@ -43,7 +43,9 @@ kind: CronJob
 metadata:
   name: pingfederate-csd-periodic-backup
 spec:
-  schedule: "0 * * * *"
+  # schedule: "0 * * * *"
+  # test
+  schedule: "* * * * *"
   jobTemplate:
     spec:
       template:
@@ -58,9 +60,6 @@ spec:
             envFrom:
             - configMapRef:
                 name: pingfederate-environment-variables
-            - secretRef:
-                name: devops-secret
-                optional: true
             volumeMounts:
             - name: pingfederate-csd-backup
               mountPath: /opt/in/backup-csd-data.sh

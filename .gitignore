@@ -145,3 +145,5 @@ $RECYCLE.BIN/
 *.lnk
 
 envvars.sh
+custom-k8s-settings.yaml
+.gitignore
