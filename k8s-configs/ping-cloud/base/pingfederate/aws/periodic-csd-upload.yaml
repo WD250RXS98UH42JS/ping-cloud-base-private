@@ -41,7 +41,7 @@ data:
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: pingfederate-csd-periodic-backup
+  name: pingfederate-periodic-csd-upload
 spec:
   # schedule: "0 * * * *"
   # test
