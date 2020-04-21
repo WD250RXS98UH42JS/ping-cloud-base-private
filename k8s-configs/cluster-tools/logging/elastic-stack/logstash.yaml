@@ -3,11 +3,10 @@ apiVersion: v1
 metadata:
   name: logstash-elastic
   labels:
-    app: logstash-elastic
+    role: logstash-elastic
 spec:
   selector:
-    name: logstash-elastic
-  clusterIP: None
+    role: logstash-elastic
   ports:
     - port: 9600
       name: rest
@@ -139,7 +138,7 @@ data:
 
     output {
         elasticsearch {
-            index => "logstash_%{[kubernetes][namespace]}_agent_%{+YYYY.MM.dd}"
+            index => "logstash_%{[kubernetes.namespace]}_agent_%{+YYYY.MM.dd}"
             hosts => "${LOGSTASH_ELASTICSEARCH_SCHEME}://${LOGSTASH_ELASTICSEARCH_HOST}:${LOGSTASH_ELASTICSEARCH_PORT}"
         }
 
@@ -151,7 +150,6 @@ data:
               hosts => "${LOGSTASH_ELASTICSEARCH_SCHEME}://${LOGSTASH_ELASTICSEARCH_HOST}:${LOGSTASH_ELASTICSEARCH_PORT}"
 
           }
-          stdout {}
         }
         if([log_type] == "PF_System_Log"){
           elasticsearch {
@@ -161,7 +159,6 @@ data:
               hosts => "${LOGSTASH_ELASTICSEARCH_SCHEME}://${LOGSTASH_ELASTICSEARCH_HOST}:${LOGSTASH_ELASTICSEARCH_PORT}"
 
           }
-          stdout {}
         }
     }
 ---

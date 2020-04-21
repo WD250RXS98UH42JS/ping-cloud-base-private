@@ -211,7 +211,7 @@ spec:
         - name:  PA_LOG_LEVEL
           value: "DEBUG"
         - name:  SOCKET_HOST
-          value: "logstash-elastic"
+          value: "logstash-elastic.elastic-stack-logging.svc.default.local"
         - name:  SOCKET_PORT_SYSTEM
           value: "20516"
         - name:  SOCKET_PORT_AUDIT
