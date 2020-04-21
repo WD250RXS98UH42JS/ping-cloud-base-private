@@ -7,6 +7,6 @@ resources:
 - namespace.yaml
 - ingress.yaml
 - elasticsearch.yaml
-- fluentd.yaml
+# - fluentd.yaml
 - logstash.yaml
 - kibana.yaml

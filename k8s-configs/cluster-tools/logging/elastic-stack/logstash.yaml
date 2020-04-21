@@ -139,7 +139,7 @@ data:
 
     output {
         elasticsearch {
-            index => "another_test_index_%{+YYYY.MM.dd}"
+            index => "logstash_%{[kubernetes][namespace]}_agent_%{+YYYY.MM.dd}"
             hosts => "${LOGSTASH_ELASTICSEARCH_SCHEME}://${LOGSTASH_ELASTICSEARCH_HOST}:${LOGSTASH_ELASTICSEARCH_PORT}"
         }
 
