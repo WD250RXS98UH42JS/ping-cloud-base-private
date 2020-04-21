@@ -12,17 +12,15 @@ spec:
     - port: 9600
       name: rest
     - port: 20513
-      name: pf_system_in
+      name: pf-system-in
     - port: 20514
-      name: pf_audit_in
+      name: pf-audit-in
     - port: 20515
-      name: pd_directory_in_failed_ops
+      name: pd-directory-in
     - port: 20516
-      name: pd_directory_in
-    - port: 20518
-      name: pa_system_in
-    - port: 20519
-      name: pa_audit_in
+      name: pa-system-in
+    - port: 20517
+      name: pa-audit-in
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -225,19 +223,19 @@ spec:
             name: rest
             protocol: TCP
           - containerPort: 20513
-            name: pf_system_in
+            name: pf-system-in
             protocol: TCP
           - containerPort: 20514
-            name: pf_audit_in
+            name: pf-audit-in
             protocol: TCP
           - containerPort: 20515
-            name: pd_directory_in
+            name: pd-directory-in
             protocol: TCP
           - containerPort: 20516
-            name: pa_system_in
+            name: pa-system-in
             protocol: TCP
           - containerPort: 20517
-            name: pa_audit_in
+            name: pa-audit-in
             protocol: TCP
         volumeMounts:
         - name: kubernetes-namespace-logging-logstash
