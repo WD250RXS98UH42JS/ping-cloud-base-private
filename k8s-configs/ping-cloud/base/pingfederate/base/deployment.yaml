@@ -208,6 +208,16 @@ spec:
             secretKeyRef:
               name: pingcommon-passwords
               key: PF_LDAP_PASSWORD
+        - name:  PA_LOG_LEVEL
+          value: "DEBUG"
+        - name:  SOCKET_HOST
+          value: "logstash-elastic"
+        - name:  SOCKET_PORT_SYSTEM
+          value: "20516"
+        - name:  SOCKET_PORT_AUDIT
+          value: "20517"
+        - name:  SOCKET_PROTOCOL
+          value: "TCP"
         resources:
           requests:
             memory: "2Gi"

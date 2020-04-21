@@ -8,4 +8,5 @@ resources:
 - ingress.yaml
 - elasticsearch.yaml
 - fluentd.yaml
+- logstash.yaml
 - kibana.yaml
