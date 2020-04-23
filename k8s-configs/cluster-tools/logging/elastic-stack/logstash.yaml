@@ -185,6 +185,11 @@ spec:
       # tolerations:
       # - key: node-role.kubernetes.io/master
       #   effect: NoSchedule
+
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
       - name: logstash
         image: logstash:7.6.2
