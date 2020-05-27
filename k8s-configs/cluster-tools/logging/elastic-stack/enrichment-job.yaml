@@ -137,24 +137,9 @@ data:
     yum install -y python-pip
     pip install requests
 
-    # AN ENHANCEMENT NEEDS TO OCCUR TO THIS LOGIC TO NEVER WRITE EMPTY YML FILES. IF AN EMPTY FILE IS WRITTEN LOGSTASH CRASHES.
-
-    touch /usr/share/elasticsearch/enrichment/TorNodes.yml
-    touch /usr/share/elasticsearch/enrichment/AlienVaultIP.yml
-
     echo "Starting enrichment pull..."
     python /usr/share/elasticsearch/config/bootstrap/enrichment.py
 
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: efs-provisioner
-data:
-  file.system.id: ${EFS_FILESYSTEM_ID}
-  aws.region: ${REGION}
-  provisioner.name: kubernetes.io/aws-efs
-  dns.name: ""
 ---
 
 apiVersion: v1
