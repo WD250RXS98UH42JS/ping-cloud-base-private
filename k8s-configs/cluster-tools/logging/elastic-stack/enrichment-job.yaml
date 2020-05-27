@@ -241,38 +241,38 @@ spec:
           serviceAccount: enrichment-job
           restartPolicy: OnFailure
           initContainers:
-          - name: efs-provisioner
-            image: quay.io/external_storage/efs-provisioner:latest
-            command: ['sh', '-c', "cp /enrichment-cache/* /enrichment/"]
-            env:
-              - name: FILE_SYSTEM_ID
-                valueFrom:
-                  configMapKeyRef:
-                    name: efs-provisioner
-                    key: file.system.id
-              - name: AWS_REGION
-                valueFrom:
-                  configMapKeyRef:
-                    name: efs-provisioner
-                    key: aws.region
-              - name: DNS_NAME
-                valueFrom:
-                  configMapKeyRef:
-                    name: efs-provisioner
-                    key: dns.name
-                    optional: true
-              - name: PROVISIONER_NAME
-                valueFrom:
-                  configMapKeyRef:
-                    name: efs-provisioner
-                    key: provisioner.name
-            volumeMounts:
-              - mountPath: /enrichment
-                name: enrichment-volume
-              - mountPath: /enrichment-cache
-                name: enrichment-cache-files
-              - mountPath: /enrichment/templates
-                name: enrichment-search-template-files
+          # - name: efs-provisioner
+          #   image: quay.io/external_storage/efs-provisioner:latest
+          #   command: ['sh', '-c', "cp /enrichment-cache/* /enrichment/"]
+          #   env:
+          #     - name: FILE_SYSTEM_ID
+          #       valueFrom:
+          #         configMapKeyRef:
+          #           name: efs-provisioner
+          #           key: file.system.id
+          #     - name: AWS_REGION
+          #       valueFrom:
+          #         configMapKeyRef:
+          #           name: efs-provisioner
+          #           key: aws.region
+          #     - name: DNS_NAME
+          #       valueFrom:
+          #         configMapKeyRef:
+          #           name: efs-provisioner
+          #           key: dns.name
+          #           optional: true
+          #     - name: PROVISIONER_NAME
+          #       valueFrom:
+          #         configMapKeyRef:
+          #           name: efs-provisioner
+          #           key: provisioner.name
+          #   volumeMounts:
+          #     - mountPath: /enrichment
+          #       name: enrichment-volume
+          #     - mountPath: /enrichment-cache
+          #       name: enrichment-cache-files
+          #     - mountPath: /enrichment/templates
+          #       name: enrichment-search-template-files
           - name: check-elasticsearch-availability
             image: busybox
             command: ['sh', '-c', "until nslookup elasticsearch.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for elasticsearch; sleep 2; done"]
@@ -331,7 +331,7 @@ spec:
               defaultMode: 0555
           - name: enrichment-search-template-files
             configMap:
-              name: enrichment-cache
+              name: enrichment-search-template
               defaultMode: 0555
 
 ---

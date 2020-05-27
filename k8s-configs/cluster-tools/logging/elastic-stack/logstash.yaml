@@ -130,43 +130,43 @@ data:
 
                 #Security Enrichments begin here, ENRICH THE IP ADDRESS DETAIL
 
-                # translate {
-                #     field => "ip"
-                #     destination => "threat_intel"
-                #     fallback => "No"
-                #     dictionary_path => '/etc/logstash/enrichment/AlienVaultIP.yml'
-                #     refresh_behaviour => "replace"
-                # }
+                translate {
+                    field => "ip"
+                    destination => "threat_intel"
+                    fallback => "No"
+                    dictionary_path => '/etc/logstash/enrichment/AlienVaultIP.yml'
+                    refresh_behaviour => "replace"
+                }
     
-                # translate {
-                #     field => "ip"
-                #     destination => "tor_intel"
-                #     fallback => "No"
-                #     dictionary_path => '/etc/logstash/enrichment/TorNodes.yml'
-                #     refresh_behaviour => "replace"
-                # }
+                translate {
+                    field => "ip"
+                    destination => "tor_intel"
+                    fallback => "No"
+                    dictionary_path => '/etc/logstash/enrichment/TorNodes.yml'
+                    refresh_behaviour => "replace"
+                }
     
-                # translate {
-                #     field => "[geoip][country_name]"
-                #     destination => "malicious_country"
-                #     fallback => "No"
-                #     dictionary_path => '/etc/logstash/enrichment/MaliciousCountries.yml'
-                #     refresh_behaviour => "replace"
-                # }
+                translate {
+                    field => "[geoip][country_name]"
+                    destination => "malicious_country"
+                    fallback => "No"
+                    dictionary_path => '/etc/logstash/enrichment/MaliciousCountries.yml'
+                    refresh_behaviour => "replace"
+                }
     
-                # translate {
-                #     field => "[geoip][country_name]"
-                #     destination => "known_country"
-                #     fallback => "No"
-                #     dictionary_path => '/etc/logstash/enrichment/KnownCountries.yml'
-                #     refresh_behaviour => "replace"
-                # }
+                translate {
+                    field => "[geoip][country_name]"
+                    destination => "known_country"
+                    fallback => "No"
+                    dictionary_path => '/etc/logstash/enrichment/KnownCountries.yml'
+                    refresh_behaviour => "replace"
+                }
     
-                # if([malicious_country] == "No" and [known_country] == "No"){
-                #     mutate {
-                #         add_field => { "suspicious_country" => "YES" }
-                #     }
-                # }
+                if([malicious_country] == "No" and [known_country] == "No"){
+                    mutate {
+                        add_field => { "suspicious_country" => "YES" }
+                    }
+                }
 
                 # HERE SHOULD BE ADDITIONAL FILTERS WHICH RELATED TO PDO-966 SETTING UP LOGSTASH FILTERS SCOPE
             }
@@ -257,6 +257,41 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
+      #################################
+      initContainers:
+      - name: efs-provisioner
+        image: quay.io/external_storage/efs-provisioner:latest
+        command: ['sh', '-c', "cp /enrichment-cache/* /enrichment/"]
+        env:
+          - name: FILE_SYSTEM_ID
+            valueFrom:
+              configMapKeyRef:
+                name: efs-provisioner
+                key: file.system.id
+          - name: AWS_REGION
+            valueFrom:
+              configMapKeyRef:
+                name: efs-provisioner
+                key: aws.region
+          - name: DNS_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: efs-provisioner
+                key: dns.name
+                optional: true
+          - name: PROVISIONER_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: efs-provisioner
+                key: provisioner.name
+        volumeMounts:
+          - mountPath: /enrichment
+            name: enrichment-volume
+          - mountPath: /enrichment-cache
+            name: enrichment-cache-files
+          - mountPath: /enrichment/templates
+            name: enrichment-search-template-files
+      ####################################
       containers:
       - name: logstash
         image: logstash:7.6.2
@@ -341,3 +376,12 @@ spec:
           # server: fs-c2e4d068.efs.${REGION}.amazonaws.com
           server: ${EFS_FILESYSTEM_ID}.efs.${REGION}.amazonaws.com
           path: /
+      ######################
+      - name: enrichment-cache-files
+        configMap:
+          name: enrichment-cache
+          defaultMode: 0555
+      - name: enrichment-search-template-files
+        configMap:
+          name: enrichment-search-template
+          defaultMode: 0555 
