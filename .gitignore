@@ -148,4 +148,4 @@ envvars.sh
 custom-k8s-settings.yaml
 .gitignore
 
-**/env_vars
+# **/env_vars
