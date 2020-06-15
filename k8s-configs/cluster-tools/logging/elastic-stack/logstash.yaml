@@ -24,6 +24,7 @@ spec:
       name: pa-system-in
     - port: 20517
       name: pa-audit-in
+
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -60,175 +61,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: logstash-elastic
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: kubernetes-namespace-logging-logstash
-  labels:
-    app: logstash-elastic
-data:
-  logstash.conf: |
-    input {
-        http {
-            id => "enrichment_in"
-            port => 20510
-            codec => "json"
-            response_code => 200
-            add_field => {"log_type" => "Enrichment_System_Log"}
-        }
-        tcp {
-            id => "pf_provision_in"
-            port => 20512
-            add_field => {"log_type" => "PF_Provisioner_Log"}
-        }
-        tcp {
-            id => "pf_system_in"
-            port => 20513
-            add_field => {"log_type" => "PF_System_Log"}
-        }
-        tcp {
-            id => "pf_audit_in"
-            port => 20514
-            add_field => {"log_type" => "PF_Audit_Log"}
-        }
-        file {
-            id => "var_log"
-            path => "/var/log"
-        }
-        file {
-            id => "containers_log"
-            path => "/var/lib/docker/containers"
-        }
-    }
-    filter {
-        #PROCESS PING FED AUDIT LOG
-        #Log4J Pattern Matching from PF and extraction of JSON DATA from the MSG
-        if([log_type] == "PF_Audit_Log"){
-            grok { 
-                match => { 
-                    "message" => [ 
-                        "\A%{SYSLOG5424PRI}%{SYSLOGTIMESTAMP:event_timestamp}%{SPACE}%{SYSLOGPROG} , %{GREEDYDATA:json_data}",
-                        "\A%{SYSLOG5424PRI}%{SYSLOGTIMESTAMP:event_timestamp}%{SPACE}%{SYSLOGPROG}%{SPACE}%{GREEDYDATA:json_data}"
-                        ]
-                }
-            } 
-            #Convert the injested data into Individual Fields for elasticsearch
-            json {
-                source => "json_data"
-            }
-    
-            if([json_data]){
-                #Drop the original as you do not need it at this point.
-                mutate {
-                    remove_field => "[json_data]"
-                }
-    
-                geoip {
-                    source => "ip"
-                }
 
-                #Security Enrichments begin here, ENRICH THE IP ADDRESS DETAIL
-
-                translate {
-                    field => "ip"
-                    destination => "threat_intel"
-                    fallback => "No"
-                    dictionary_path => '/etc/logstash/enrichment/AlienVaultIP.yml'
-                    refresh_behaviour => "replace"
-                }
-    
-                translate {
-                    field => "ip"
-                    destination => "tor_intel"
-                    fallback => "No"
-                    dictionary_path => '/etc/logstash/enrichment/TorNodes.yml'
-                    refresh_behaviour => "replace"
-                }
-    
-                translate {
-                    field => "[geoip][country_name]"
-                    destination => "malicious_country"
-                    fallback => "No"
-                    dictionary_path => '/etc/logstash/enrichment/MaliciousCountries.yml'
-                    refresh_behaviour => "replace"
-                }
-    
-                translate {
-                    field => "[geoip][country_name]"
-                    destination => "known_country"
-                    fallback => "No"
-                    dictionary_path => '/etc/logstash/enrichment/KnownCountries.yml'
-                    refresh_behaviour => "replace"
-                }
-    
-                if([malicious_country] == "No" and [known_country] == "No"){
-                    mutate {
-                        add_field => { "suspicious_country" => "YES" }
-                    }
-                }
-
-                # HERE SHOULD BE ADDITIONAL FILTERS WHICH RELATED TO PDO-966 SETTING UP LOGSTASH FILTERS SCOPE
-            }
-        }
-
-        # PROCESS PING FED SYSTEM LOG
-        # USING LOG4J's ability to output in JSON limits the amount of processing you have to do besides splitting up JSON.
-    
-        if([log_type] == "PF_System_Log"){
-            grok { 
-                match => { 
-                    "message" => [ 
-                        "\A%{SYSLOG5424PRI}%{SYSLOGTIMESTAMP:event_timestamp}%{SPACE}%{SYSLOGPROG} , %{GREEDYDATA:json_data}",
-                        "\A%{SYSLOG5424PRI}%{SYSLOGTIMESTAMP:event_timestamp}%{SPACE}%{SYSLOGPROG}%{SPACE}%{GREEDYDATA:json_data}"
-                        ]
-                }
-            } 
-            json {
-                source => "json_data"
-            }
-    
-            if([json_data]){
-                mutate {
-                    remove_field => "[json_data]"
-                }
-            }   
-        }
-    }
-    output {
-        elasticsearch {
-            index => "logstash_%{+YYYY.MM.dd}"
-            hosts => "${LOGSTASH_ELASTICSEARCH_SCHEME}://${LOGSTASH_ELASTICSEARCH_HOST}:${LOGSTASH_ELASTICSEARCH_PORT}"
-        }
-        if([log_type] == "Enrichment_System_Log"){
-          elasticsearch {
-              id => "enrichment_out"
-              index => "enrichment_out_%{+YYYY.MM.dd}"
-              hosts => "${LOGSTASH_ELASTICSEARCH_SCHEME}://${LOGSTASH_ELASTICSEARCH_HOST}:${LOGSTASH_ELASTICSEARCH_PORT}"
-          }
-        }
-        if([log_type] == "PF_Provisioner_Log"){
-          elasticsearch {
-              id => "pf_provision_out"
-              index => "pf_provision_out_%{+YYYY.MM.dd}"
-              hosts => "${LOGSTASH_ELASTICSEARCH_SCHEME}://${LOGSTASH_ELASTICSEARCH_HOST}:${LOGSTASH_ELASTICSEARCH_PORT}"
-          }
-        }
-        if([log_type] == "PF_Audit_Log"){
-          elasticsearch {
-              id => "pf_audit_out"
-              index => "pf_audit_out_%{+YYYY.MM.dd}"
-              hosts => "${LOGSTASH_ELASTICSEARCH_SCHEME}://${LOGSTASH_ELASTICSEARCH_HOST}:${LOGSTASH_ELASTICSEARCH_PORT}"
-          }
-        }
-        if([log_type] == "PF_System_Log"){
-          elasticsearch {
-              id => "pf_system_out"
-              index => "pf_system_out_%{+YYYY.MM.dd}"
-              hosts => "${LOGSTASH_ELASTICSEARCH_SCHEME}://${LOGSTASH_ELASTICSEARCH_HOST}:${LOGSTASH_ELASTICSEARCH_PORT}"
-          }
-        }
-    }
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -253,59 +86,43 @@ spec:
       # tolerations:
       # - key: node-role.kubernetes.io/master
       #   effect: NoSchedule
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
       #################################
       initContainers:
-      - name: efs-provisioner
-        image: quay.io/external_storage/efs-provisioner:latest
-        command: ['sh', '-c', "cp -r /enrichment-cache/* /enrichment/ | true"]
+      - name: check-elasticsearch-availability
+        image: busybox
+        workingDir: /scripts
+        command: ['sh', '-c', "until nslookup elasticsearch.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for elasticsearch; sleep 2; done"]
+
+      - name: logstash-init
+        image: busybox
+        workingDir: /scripts
+        command: ["sh", '$(CONTAINER_NAME).sh']
         env:
-          - name: FILE_SYSTEM_ID
-            valueFrom:
-              configMapKeyRef:
-                name: efs-provisioner
-                key: file.system.id
-          - name: AWS_REGION
-            valueFrom:
-              configMapKeyRef:
-                name: efs-provisioner
-                key: aws.region
-          - name: DNS_NAME
-            valueFrom:
-              configMapKeyRef:
-                name: efs-provisioner
-                key: dns.name
-                optional: true
-          - name: PROVISIONER_NAME
-            valueFrom:
-              configMapKeyRef:
-                name: efs-provisioner
-                key: provisioner.name
+        - name: WAIT_FOR
+          value: "enrichment-bootstrap"
+        - name: CONTAINER_NAME
+          value: "logstash-init"
         volumeMounts:
-          - mountPath: /enrichment
-            name: enrichment-volume
-          - mountPath: /enrichment-cache
-            name: enrichment-cache-files
-          - mountPath: /enrichment/templates
-            name: enrichment-search-template-files
+        - name: enrichment-shared-volume
+          mountPath: /enrichment-shared-volume
+          readOnly: false
+        - name: enrichment-scripts
+          mountPath: /scripts
       ####################################
       containers:
       - name: logstash
         image: logstash:7.6.2
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+        command: ["sh", '/scripts/$(CONTAINER_NAME).sh']
         env:
-          - name:  LOGSTASH_ELASTICSEARCH_HOST
-            value: "elasticsearch"
-          - name:  LOGSTASH_ELASTICSEARCH_PORT
-            value: "9200"
-          - name: LOGSTASH_ELASTICSEARCH_SCHEME
-            value: "http"
-          # - name: LOGSTASH_ELASTICSEARCH_USER
-          #   value: "elastic"
-          # - name: LOGSTASH_ELASTICSEARCH_PASSWORD
-          #   value: PASSWORD
+          # - name:  LOGSTASH_ELASTICSEARCH_HOST
+          #   value: "elasticsearch"
+          # - name:  LOGSTASH_ELASTICSEARCH_PORT
+          #   value: "9200"
+          # - name: LOGSTASH_ELASTICSEARCH_SCHEME
+          #   value: "http"
           - name: LS_JAVA_OPTS
             value: "-Xmx1g -Xms1g"
           - name: CONFIG_RELOAD_AUTOMATIC
@@ -315,7 +132,54 @@ spec:
           - name: LOG_FORMAT
             value: "json"
           - name: LOG_LEVEL
-            value: "info"
+            value: "debug"
+
+          - name: NODE_NAME
+            value: "logstash"
+
+          - name: XPACK_MONITORING_ENABLED
+            value: "true"
+          - name: XPACK_MONITORING_ELASTICSEARCH_HOSTS
+            value: "https://elasticsearch:9200"
+          - name: XPACK_MONITORING_ELASTICSEARCH_URL
+            value: "https://elasticsearch:9200"
+          - name: XPACK_MONITORING_ELASTICSEARCH_SSL_CERTIFICATE_AUTHORITY
+            value: "/enrichment-shared-volume/certs/elasticsearch/elasticsearch.crt"
+          # - name: XPACK_MONITORING_ELASTICSEARCH_USERNAME
+          #   valueFrom:
+          #     secretKeyRef:
+          #       name: elasticsearch-secrets
+          #       key: username
+          # - name: XPACK_MONITORING_ELASTICSEARCH_PASSWORD
+          #   valueFrom:
+          #     secretKeyRef:
+          #       name: elasticsearch-secrets
+          #       key: password
+
+          - name: XPACK_MANAGEMENT_ENABLED
+            value: "true"
+          - name: XPACK_MANAGEMENT_ELASTICSEARCH_HOSTS
+            value: "https://elasticsearch:9200"
+          - name: XPACK_MANAGEMENT_ELASTICSEARCH_URL
+            value: "https://elasticsearch:9200"
+          - name: XPACK_MANAGEMENT_ELASTICSEARCH_SSL_CERTIFICATE_AUTHORITY
+            value: "/enrichment-shared-volume/certs/elasticsearch/elasticsearch.crt"
+
+          - name: ELASTIC_USER
+            valueFrom:
+              secretKeyRef:
+                name: elasticsearch-secrets
+                key: username
+          - name: ELASTIC_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: elasticsearch-secrets
+                key: password
+          - name: CERTS_DIR
+            value: "/enrichment-shared-volume/certs"
+
+          - name: CONTAINER_NAME
+            value: "logstash"
         resources:
           limits:
             memory: 1Gi
@@ -348,51 +212,51 @@ spec:
             name: pa-audit-in
             protocol: TCP
         volumeMounts:
-        - name: kubernetes-namespace-logging-logstash
+        - name: enrichment-logstash-config
           mountPath: /usr/share/logstash/pipeline
+          readOnly: true
+        - name: enrichment-logstash-yaml-config
+          mountPath: /usr/share/logstash/config
           readOnly: true
         - name: varlog
           mountPath: /var/log
         - name: varlibdockercontainers
           mountPath: /var/lib/docker/containers
           readOnly: true
-        - name: enrichment-volume
-          mountPath: /etc/logstash/enrichment
+        - name: enrichment-shared-volume
+          mountPath: /enrichment-shared-volume
           readOnly: true
+        - name: enrichment-scripts
+          mountPath: /scripts
       terminationGracePeriodSeconds: 30
       volumes:
-      - name: kubernetes-namespace-logging-logstash
+      - name: enrichment-logstash-config
         configMap:
-          name: kubernetes-namespace-logging-logstash
+          name: enrichment-logstash-config
+      - name: enrichment-logstash-yaml-config
+        configMap:
+          name: enrichment-logstash-yaml-config
       - name: varlog
         hostPath:
           path: /var/log
       - name: varlibdockercontainers
         hostPath:
           path: /var/lib/docker/containers
-      - name: enrichment-volume
+      - name: enrichment-shared-volume
         nfs:
           # HARDCODED VALUE! SHOULD BE CHANGED TO DYNAMIC!
           # server: fs-c2e4d068.efs.${REGION}.amazonaws.com
           server: ${EFS_FILESYSTEM_ID}.efs.${REGION}.amazonaws.com
           path: /
       ######################
-      - name: enrichment-cache-files
+      - name: enrichment-cache
         configMap:
           name: enrichment-cache
           defaultMode: 0555
-      - name: enrichment-search-template-files
+      - name: enrichment-scripts
         configMap:
-          name: enrichment-search-template
+          name: enrichment-scripts
           defaultMode: 0555
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: efs-provisioner
-data:
-  file.system.id: ${EFS_FILESYSTEM_ID}
-  aws.region: ${REGION}
-  provisioner.name: kubernetes.io/aws-efs
-  dns.name: ""
+      - name: elasticsearch-secrets
+        secret:
+          secretName: elasticsearch-secrets
