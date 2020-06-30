@@ -242,9 +242,9 @@ spec:
         - name: xpack.security.http.ssl.client_authentication
           value: "optional"
         - name: xpack.security.http.ssl.key
-          value: "certs/elasticsearch/elasticsearch.key"
+          value: "certs/$(POD_NAME)/$(POD_NAME).key"
         - name: xpack.security.http.ssl.certificate
-          value: "certs/elasticsearch/elasticsearch.crt"
+          value: "certs/$(POD_NAME)/$(POD_NAME).crt"
         - name: xpack.security.http.ssl.certificate_authorities
           value: "certs/ca/ca.crt" 
 
@@ -255,9 +255,9 @@ spec:
         - name: xpack.security.transport.ssl.client_authentication
           value: "optional"
         - name: xpack.security.transport.ssl.key
-          value: "certs/elasticsearch/elasticsearch.key"
+          value: "certs/$(POD_NAME)/$(POD_NAME).key"
         - name: xpack.security.transport.ssl.certificate
-          value: "certs/elasticsearch/elasticsearch.crt"
+          value: "certs/$(POD_NAME)/$(POD_NAME).crt" 
         - name: xpack.security.transport.ssl.certificate_authorities
           value: "certs/ca/ca.crt"
 

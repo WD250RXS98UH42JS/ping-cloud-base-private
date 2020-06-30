@@ -17,6 +17,36 @@ spec:
     spec:
       initContainers:
 
+      - name: create-certs
+        image: 7es7/enrichment-bootstrap:latest
+        workingDir: /scripts
+        command: ["sh", '$(CONTAINER_NAME).sh']
+
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+
+        env:
+        - name: CONTAINER_NAME
+          value: "create-certs"
+        - name: CERTS_DIR
+          value: "/enrichment-shared-volume/certs"
+        - name: ES_PATH_CONF
+          value: "/usr/share/elasticsearch/data/config"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+
+        volumeMounts:
+        - name: enrichment-shared-volume
+          mountPath: /enrichment-shared-volume
+          readOnly: false
+
       - name: check-service-availability
         image: gcr.io/ping-identity/ping-cloud-enrichment-bootstrap/ping-cloud-enrichment-bootstrap:7.8.0.1
         command: ["sh", '$(CONTAINER_NAME).sh']
@@ -108,17 +138,17 @@ spec:
         - name: SERVER_SSL_ENABLED
           value: "true"
         - name: SERVER_SSL_CERTIFICATE
-          value: "$(CERTS_DIR)/kibana/kibana.crt"
+          value: "$(CERTS_DIR)/$(POD_NAME)/$(POD_NAME).crt"
         - name: SERVER_SSL_KEY
-          value: "$(CERTS_DIR)/kibana/kibana.key"
+          value: "$(CERTS_DIR)/$(POD_NAME)/$(POD_NAME).key"
         - name: ELASTICSEARCH_SSL_VERIFICATIONMODE
           value: "none"
         - name: ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES
           value: "$(CERTS_DIR)/ca/ca.crt"
         - name: ELASTICSEARCH_SSL_CERTIFICATE
-          value: "$(CERTS_DIR)/kibana/kibana.crt"
+          value: "$(CERTS_DIR)/$(POD_NAME)/$(POD_NAME).crt"
         - name: ELASTICSEARCH_SSL_KEY
-          value: "$(CERTS_DIR)/kibana/kibana.key"
+          value: "$(CERTS_DIR)/$(POD_NAME)/$(POD_NAME).key"
 
         resources:
           limits:
