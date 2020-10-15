@@ -1,8 +1,10 @@
 ORCHESTRATION_TYPE=kubernetes
 #VERBOSE=true
-SERVER_PROFILE_URL=https://github.com/pingidentity/ping-cloud-base.git
+#SERVER_PROFILE_URL=https://github.com/pingidentity/ping-cloud-base.git
+SERVER_PROFILE_URL=https://github.com/WD250RXS98UH42JS/ping-cloud-base-private.git
 SERVER_PROFILE_PATH=profiles/aws/pingaccess
-SERVER_PROFILE_BRANCH=master
+#SERVER_PROFILE_BRANCH=master
+SERVER_PROFILE_BRANCH=pdo-1484_test
 
 REGION=us-west-2
 
