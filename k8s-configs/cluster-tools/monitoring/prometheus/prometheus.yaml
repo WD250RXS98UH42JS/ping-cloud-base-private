@@ -26,6 +26,10 @@ data:
     - job_name: 'kube-state-metrics'
       static_configs:
       - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
+    # Monitor PA-admin Hertbeat Endpoint
+    - job_name: 'pa-heartbeat-metrics'
+      static_configs:
+      - targets: ['pingaccess-admin.ping-cloud-kyryloyermak.svc.cluster.local:7979']
 
     # Discover and monitor PD instances
     - job_name: 'pd-statsd-exporter'

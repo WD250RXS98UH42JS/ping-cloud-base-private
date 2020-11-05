@@ -1,0 +1,15 @@
+{"items":[{
+      "cpu.load": "3.27",
+      "total.jvm.memory": "248.513 MB",
+      "free.jvm.memory": "103.466 MB",
+      "used.jvm.memory": "145.046 MB",
+      "total.physical.system.memory": "33.449 GB",
+      "total.free.physical.system.memory": "21438.276 MB",
+      "total.used.physical.system.memory": "12.011 GB",
+      "number.of.cpus": "2",
+      "hostname": "pingaccess-admin-0",
+      "open.client.connections": "2",
+      "number.of.applications": "0",
+      "number.of.virtual.hosts": "2",
+      "last.refresh.time": "2020-10-22T13:19:53.202Z"
+}]}

@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-json-exporter-sidecar-config
+  labels:
+    name: prometheus-json-exporter-sidecar-config
+data:
+  config.yml: |-
+    ### TEST SECTION
+    - name: pa_admin_cpu_load
+      type: object
+      path: $.values[*]?(@.hostname == "pingaccess-admin-0")
+      labels:
+        environment: test
+      values:
+        value: $.cpu.load
+    ###
+    # - name: pa_admin_response_time_90_percentile_value
+    #   type: object
+    #   path: $.items[*].(response.time.statistics.90.percentile)
+
+    # - name: pa_admin_response_time_mean_value
+    #   type: object
+    #   path: $.items[*].(response.time.statistics.mean)
+
+    # - name: pa_admin_response_concurrency_90_percentile_value
+    #   type: object
+    #   path: $.items[*].(response.concurrency.statistics.90.percentile)
+
+    # - name: pa_admin_response_concurrency_mean_value
+    #   type: object
+    #   path: $.items[*].(response.concurrency.statistics.mean)
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-json-exporter-sidecar-script
+  labels:
+    name: prometheus-json-exporter-sidecar-script
+data:
+  run.sh: |-
+    #!/bin/sh
+    echo "{}" > ./data.json
+    python -m SimpleHTTPServer 8000 &
+    /json_exporter/json_exporter http://localhost:8000/data.json ./config.yml &
+    while :
+    do
+      curl -k -H "Content-type: application/json" $ENDPOINT_URL -o ./data.json
+      sleep $REFRESH_SEC
+    done
+
+---

@@ -7,6 +7,7 @@ resources:
 - ingress.yaml
 - service.yaml
 - storage.yaml
+- sidecar-config.yaml
 - statefulset.yaml
 
 generatorOptions:

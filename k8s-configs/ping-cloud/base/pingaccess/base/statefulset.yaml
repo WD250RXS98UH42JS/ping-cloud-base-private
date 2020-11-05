@@ -145,6 +145,41 @@ spec:
         - secretRef:
             name: devops-secret
             optional: true
+      
+      - name: prometheus-json-exporter-sidecar
+        image: 7es7/json-exporter:test
+        imagePullPolicy: Always
+        workingDir: /data
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+        # command: ["sh", 'run.sh']
+        env:
+          - name: ENDPOINT_URL
+            value: "https://localhost:9000/pa/heartbeat.ping"
+          - name: REFRESH_SEC
+            value: "5"
+        volumeMounts:
+          - name: prometheus-json-exporter-sidecar-config
+            mountPath: /data/config.yml
+            subPath: config.yml
+          - name: prometheus-json-exporter-sidecar-script
+            mountPath: /data/run.sh
+            subPath: run.sh
+        ports:
+        - containerPort: 8000
+          name: webserver
+        - containerPort: 7979
+          name: prometheus-out 
+        resources:
+          limits:
+            cpu: 500m
+            memory: 2500Mi
+          requests:
+            cpu: 100m
+            memory: 512Mi
+
+
       volumes:
       - name: ssh-dir
         emptyDir: {}
@@ -182,6 +217,14 @@ spec:
           secretName: pingaccess-passwords
           optional: true
           defaultMode: 0400
+      - name: prometheus-json-exporter-sidecar-config
+        configMap:
+          name: prometheus-json-exporter-sidecar-config
+          defaultMode: 0555
+      - name: prometheus-json-exporter-sidecar-script
+        configMap:
+          name: prometheus-json-exporter-sidecar-script
+          defaultMode: 0555
   volumeClaimTemplates:
   - metadata:
       name: out-dir
